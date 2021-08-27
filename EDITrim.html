@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+	<header>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="A simple HTML5 Template for new projects.">
+		<meta name="author" content="Beomatt">
+		<title>Trim Whitespace from EDI data.</title>
+		<script>
+			function loadFile()
+			{
+				document.getElementById("EDIbox").value = "";
+				var input = document.createElement('input');
+				input.type = 'file';
+
+				input.onchange = e => 
+				{
+					// getting a hold of the file reference
+					var file = e.target.files[0];
+	
+					document.getElementById("status").innerHTML = file.name;
+					document.getElementById("filePath").innerHTML = "File Loaded";
+					
+					
+					
+					// setting up the reader
+					var reader = new FileReader();
+					reader.readAsText(file,'UTF-8');
+					
+
+					// here we tell the reader what to do when it's done reading...
+					reader.onload = readerEvent => 
+					{
+						const file = event.target.result;
+						const fileLines = file.split(/\r\n|\n/);
+						var allLines = fileLines.filter(stripEmpty)
+						const lineCount = allLines.length
+						var lineNo = 0;
+						var lineText;
+						var largestLine = 0;
+						var splitLine = false;
+						
+						// Reading line by line
+						allLines.forEach((line) => 
+						{	
+							lineNo++;
+							
+							lineText = line.trim();
+
+							if(lineText[lineText.length - 1] === '~')
+							{	
+								if(lineNo < lineCount)
+								{
+									lineText += "\n";
+								}
+								
+								if(splitLine)
+								{
+									largestLine += lineText.length;
+									splitLine = false;
+								}
+							}
+							else
+							{
+								splitLine = true;
+							}
+							
+							if(lineText.length > largestLine)
+							{
+								largestLine = lineText.length;
+							}
+							
+							console.log(lineNo + " : " + lineCount);
+							console.log(lineText);
+							document.getElementById("EDIbox").value += lineText;
+							
+						});
+						
+						document.getElementById("EDIbox").cols = largestLine + 5;
+						document.getElementById("EDIbox").rows = lineCount;
+					}
+				}
+				
+				input.click();
+			}
+			
+			function stripEmpty(line)
+			{
+				return line.trim() != '';
+			}
+		</script>
+	</header>
+	<body>
+		<p id="status">No file loaded</p>
+		<p id="filePath"></p>
+		<div id="loadButton" style="display:block;">
+			<button type="Button" OnClick="loadFile()">Browse</button>
+			<br />
+			<hr/>
+			<textarea id="EDIbox" rows="5" cols="100"></textarea>
+		</div>
+	</body>
+</html>
